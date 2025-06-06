@@ -15,7 +15,7 @@
 
 dataset:
   name: gptfuzzer
-  path: TrustAIRLab/in-the-wild-jailbreak-prompts
+  path: ./benchmarks/text_to_text/gptfuzzer/prompts.json
   split: train
   size:
   modality: text-to-text

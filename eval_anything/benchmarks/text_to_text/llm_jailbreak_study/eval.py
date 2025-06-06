@@ -60,10 +60,12 @@ def gpt_evaluate(
     num_workers = int(os.getenv('NUM_WORKERS', 32))
 
     def _single_request(inference_input: InferenceInput, inference_output: InferenceOutput) -> str:
-        inference_input.metadata['prompt']
+        question = inference_input.metadata['prompt']
         category = inference_input.metadata['category']
-        response = inference_output.response
-        user_prompt = EVALUATE_PROMPT.format(category=category, response=response)
+        response = inference_output.response[0]
+        user_prompt = EVALUATE_PROMPT.format(
+            question=question, category=category, response=response
+        )
 
         messages = [{'role': 'user', 'content': user_prompt}]
 
@@ -101,7 +103,7 @@ def gpt_evaluate(
 
 
 @BenchmarkRegistry.register('llm_jailbreak_study')
-class llm_jailbreak_study(T2TBenchmark):
+class LlmJailbreakStudyBenchmark(T2TBenchmark):
     def __init__(
         self,
         model: BaseModel,

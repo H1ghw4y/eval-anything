@@ -111,7 +111,7 @@ def gpt_evaluate(
 
 
 @BenchmarkRegistry.register('air_bench_2024')
-class air_bench_2024(T2TBenchmark):
+class AirBench2024Benchmark(T2TBenchmark):
     def __init__(
         self,
         model: BaseModel,
@@ -214,7 +214,7 @@ class air_bench_2024(T2TBenchmark):
             inference_outputs,
             {
                 'air_bench_2024': {
-                    'eval_score': {'default': avg_eval_score},
+                    'eval_score': avg_eval_score,
                 }
             },
             {},

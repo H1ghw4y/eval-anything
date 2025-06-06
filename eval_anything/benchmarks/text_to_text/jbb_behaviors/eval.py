@@ -57,10 +57,12 @@ def gpt_evaluate(
     num_workers = int(os.getenv('NUM_WORKERS', 32))
 
     def _single_request(inference_input: InferenceInput, inference_output: InferenceOutput) -> str:
-        inference_input.metadata['prompt']
+        question = inference_input.metadata['prompt']
         category = inference_input.metadata['category']
-        response = inference_output.response
-        user_prompt = EVALUATE_PROMPT.format(category=category, response=response)
+        response = inference_output.response[0]
+        user_prompt = EVALUATE_PROMPT.format(
+            question=question, category=category, response=response
+        )
 
         messages = [{'role': 'user', 'content': user_prompt}]
 
@@ -98,7 +100,7 @@ def gpt_evaluate(
 
 
 @BenchmarkRegistry.register('jbb_behaviors')
-class jbb_behaviors(T2TBenchmark):
+class JbbBehaviorsBenchmark(T2TBenchmark):
     def __init__(
         self,
         model: BaseModel,
@@ -117,8 +119,8 @@ class jbb_behaviors(T2TBenchmark):
 
     def to_InferenceInput(self, task_list: list[str]) -> dict[str, list[InferenceInput]]:
         """Convert a task list to a list of InferenceInput dict instances"""
-        # assert self.benchmark_cfgs['split'] in ['harmful', 'benign'], "Split should be one of ['harmful', 'benign']."
-        # assert self.benchmark_cfgs['path'] == 'JailbreakBench/JBB-Behaviors', "Path to the dataset must be 'JailbreakBench/JBB-Behaviors'."
+        # assert split in ['harmful', 'benign'], "Split should be one of ['harmful', 'benign']."
+        # assert path == 'JailbreakBench/JBB-Behaviors', "Path to the dataset must be 'JailbreakBench/JBB-Behaviors'."
         dataset = load_dataset('JailbreakBench/JBB-Behaviors', 'behaviors', split='harmful')
         dataset = dataset.rename_column('Goal', 'prompt')
         dataset = dataset.rename_column('Category', 'category')
@@ -192,8 +194,8 @@ class jbb_behaviors(T2TBenchmark):
             if output_item.is_refusal is not None and output_item.is_refusal:
                 refusal_cnt += 1
 
-        attack_success_rate = (jailbroken_cnt / len(inference_outputs['jbb_behaviors']),)
-        refusal_rate = (refusal_cnt / len(inference_outputs['jbb_behaviors']),)
+        attack_success_rate = jailbroken_cnt / len(inference_outputs['jbb_behaviors'])
+        refusal_rate = refusal_cnt / len(inference_outputs['jbb_behaviors'])
 
         self.display_benchmark_results(
             self.benchmark_name,
@@ -209,8 +211,8 @@ class jbb_behaviors(T2TBenchmark):
             inference_outputs,
             {
                 'jbb_behaviors': {
-                    'attack_success_rate': {'default': attack_success_rate},
-                    'refusal_rate': {'default': refusal_rate},
+                    'attack_success_rate': attack_success_rate,
+                    'refusal_rate': refusal_rate,
                 }
             },
             {},

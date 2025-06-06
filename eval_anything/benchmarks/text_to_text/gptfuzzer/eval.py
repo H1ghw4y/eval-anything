@@ -58,7 +58,7 @@ def gpt_evaluate(
 
     def _single_request(inference_input: InferenceInput, inference_output: InferenceOutput) -> str:
         question = inference_input.metadata['prompt']
-        response = inference_output.response
+        response = inference_output.response[0]
         user_prompt = EVALUATE_PROMPT.format(question=question, response=response)
 
         messages = [{'role': 'user', 'content': user_prompt}]
@@ -97,7 +97,7 @@ def gpt_evaluate(
 
 
 @BenchmarkRegistry.register('gptfuzzer')
-class gptfuzzer(T2TBenchmark):
+class GptfuzzerBenchmark(T2TBenchmark):
     def __init__(
         self,
         model: BaseModel,
@@ -182,8 +182,8 @@ class gptfuzzer(T2TBenchmark):
             if output_item.is_following is not None:
                 following_results.append(output_item.is_following)
 
-        safety_rate = (sum(safety_results) / len(safety_results),)
-        following_rate = (sum(following_results) / len(following_results),)
+        safety_rate = sum(safety_results) / len(safety_results)
+        following_rate = sum(following_results) / len(following_results)
 
         self.display_benchmark_results(
             self.benchmark_name,

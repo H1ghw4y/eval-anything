@@ -17,7 +17,6 @@ from collections import namedtuple
 
 from datasets import load_dataset
 
-from eval_anything.benchmarks.text_to_text.salad_bench.utils import merge_categories
 from eval_anything.models.base_model import BaseModel
 from eval_anything.pipeline.t2t_benchmark import T2TBenchmark
 from eval_anything.utils.cache_manager import CacheManager
@@ -27,7 +26,7 @@ from eval_anything.utils.register import BenchmarkRegistry
 
 
 @BenchmarkRegistry.register('salad_bench')
-class salad_bench(T2TBenchmark):
+class SaladBenchBenchmark(T2TBenchmark):
     def __init__(
         self,
         model: BaseModel,
@@ -47,7 +46,6 @@ class salad_bench(T2TBenchmark):
     def to_InferenceInput(self, task_list: list[str]) -> dict[str, list[InferenceInput]]:
         """Convert a task list to a list of InferenceInput dict instances"""
         dataset = load_dataset('OpenSafetyLab/Salad-Data', name='base_set', split='train')
-        dataset = dataset.map(merge_categories)
         dataset = dataset.rename_column('question', 'prompt')
         # dataset = dataset.shuffle(seed=42).select(range(100))  # Limit to 1000 samples for testing
 
@@ -60,7 +58,6 @@ class salad_bench(T2TBenchmark):
                     ref_answer=None,
                     metadata={
                         'prompt': item['prompt'],
-                        'category': item['category'],
                     },
                 )
             )
@@ -118,7 +115,7 @@ class salad_bench(T2TBenchmark):
 
             following_results.append(output_item.clses)
 
-        safety_rate = (sum(safety_results) / len(safety_results),)
+        safety_rate = sum(safety_results) / len(safety_results)
 
         self.display_benchmark_results(
             self.benchmark_name,
